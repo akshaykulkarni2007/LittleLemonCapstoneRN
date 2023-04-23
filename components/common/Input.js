@@ -34,6 +34,7 @@ const styles = StyleSheet.create({
 		marginTop: 10,
 	},
 	label: {
+		fontFamily: 'Karla',
 		fontSize: 18,
 		marginBottom: 14,
 	},
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 8,
 		borderColor: '#333',
 		borderWidth: 1,
-		borderRadius: 2,
+		borderRadius: 10,
 	},
 	error: {
 		color: 'red',
