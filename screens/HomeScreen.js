@@ -18,10 +18,6 @@ export const HomeScreen = () => {
 		})
 
 		fetchMenu()
-
-		db.transaction((tx) => {
-			tx.executeSql('DROP TABLE menu', (txObj, resultSet) => {})
-		})
 	}, [])
 
 	const fetchMenu = async () => {
@@ -36,18 +32,29 @@ export const HomeScreen = () => {
 						const APIMenu = await fetchMenuFromAPI()
 						setMenu(APIMenu)
 
+						const recordCount = APIMenu.length
+						const recordLength = Object.keys(APIMenu[0]).length
+
+						const qms = '(' + '?,'.repeat(recordLength) + ')'
+						const values = qms.repeat(recordCount)
+						const placeholder = values.replace(/(,\))/gim, '), ')
+						const finalPLaceholder = placeholder.trim().slice(0, -1)
+
 						db.transaction((tx) => {
 							console.log('inserting')
 
 							tx.executeSql(
-								'INSERT INTO menu (name, description, price, image, category) values ?',
-								[],
+								'INSERT INTO menu (name, price, description, image, category) values ' +
+									finalPLaceholder,
+								[].concat.apply(
+									[],
+									APIMenu.map((x) => Object.values(x))
+								),
 								(txObj, resultSet) => console.log('inserted', resultSet),
 								(txObj, error) => console.log('Error', error)
 							)
 						})
 					} else {
-						console.log('found')
 						setMenu(dbMenu)
 					}
 				},
