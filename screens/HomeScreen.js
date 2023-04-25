@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
-import { View, FlatList, StyleSheet } from 'react-native'
+import { View, Text, FlatList, StyleSheet, ScrollView } from 'react-native'
 import Constants from 'expo-constants'
 import * as SQLite from 'expo-sqlite'
 
-import { Header, MenuItem } from '../components'
+import { Header, HeroBanner, MenuFilter, MenuItem } from '../components'
 
 const db = SQLite.openDatabase('little_lemon')
 
 export const HomeScreen = () => {
 	const [menu, setMenu] = useState([])
+	const [filters, setFilters] = useState([])
+	const [searchText, setSearchText] = useState('')
 
 	useEffect(() => {
 		db.transaction((tx) => {
@@ -20,10 +22,17 @@ export const HomeScreen = () => {
 		fetchMenu()
 	}, [])
 
+	useEffect(() => {
+		filterMenu()
+	}, [filters])
+
+	const categories = [...new Set(menu.map((item) => item.category))]
+	console.log(categories)
+
 	const fetchMenu = async () => {
 		db.transaction(async (tx) => {
 			tx.executeSql(
-				'SELECT * FROM menu',
+				`SELECT * FROM menu`,
 				null,
 				async (txObj, { rows: { _array } }) => {
 					const dbMenu = _array
@@ -41,8 +50,6 @@ export const HomeScreen = () => {
 						const finalPLaceholder = placeholder.trim().slice(0, -1)
 
 						db.transaction((tx) => {
-							console.log('inserting')
-
 							tx.executeSql(
 								'INSERT INTO menu (name, price, description, image, category) values ' +
 									finalPLaceholder,
@@ -71,9 +78,39 @@ export const HomeScreen = () => {
 		return data.menu
 	}
 
+	const filterMenu = async () => {
+		console.log('filtering')
+		db.transaction(async (tx) => {
+			tx.executeSql(
+				// `SELECT * FROM menu WHERE ${categories[0]} IN (category)`,
+				`SELECT * FROM menu WHERE category IN (${filters[0]})`,
+				null,
+				async (txObj, { rows: { _array } }) => {
+					const filteredMenu = _array
+					console.log(filteredMenu)
+				},
+				(txObj, error) => console.log('Error ', error)
+			)
+		})
+	}
+
+	const handleChangeFilter = (text) => {
+		filters.includes(text)
+			? setFilters((prev) => prev.filter((v) => v !== text))
+			: setFilters((prev) => [...prev, text])
+	}
+
 	return (
-		<View>
+		<View style={styles.container}>
 			<Header />
+
+			<HeroBanner searchText={searchText} setSearchText={setSearchText} />
+
+			<MenuFilter
+				categories={categories}
+				selectedFilters={filters}
+				setFilters={handleChangeFilter}
+			/>
 
 			<FlatList
 				data={menu}
@@ -84,4 +121,8 @@ export const HomeScreen = () => {
 	)
 }
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+	},
+})
