@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { SafeAreaView, Text, Image, StyleSheet } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useFormik } from 'formik'
 
 import { Input, Button } from '../components'
@@ -7,7 +8,7 @@ import { Input, Button } from '../components'
 import { onboardingSchema } from '../utils'
 import { View } from 'react-native'
 
-export const OnboardingScreen = () => {
+export const OnboardingScreen = ({ navigation }) => {
 	const [submitting, setSubmitting] = useState(false)
 
 	const {
@@ -31,10 +32,15 @@ export const OnboardingScreen = () => {
 			setSubmitting(true)
 
 			try {
-				console.log(values)
-				setTimeout(() => setSubmitting(false), 2000)
+				await AsyncStorage.setItem(
+					'userInfo',
+					JSON.stringify({ name: values.fname, email: values.email })
+				)
+
+				navigation.navigate('Home')
 			} catch (error) {
 				console.log(error)
+			} finally {
 				setSubmitting(false)
 			}
 		},
