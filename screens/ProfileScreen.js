@@ -27,8 +27,10 @@ export const ProfileScreen = ({ navigation }) => {
 		email: '',
 		lname: '',
 		phone: '',
+		dp: '',
 	})
-	const [image, setImage] = useState(userInfo?.imageURL || null)
+	const [image, setImage] = useState(defaultValues?.dp || null)
+	console.log(image)
 
 	useEffect(() => {
 		getDefaultValues()
@@ -59,7 +61,6 @@ export const ProfileScreen = ({ navigation }) => {
 			setSubmitting(true)
 
 			try {
-				console.log({ ...values, selectedNotifications, dp: image })
 				await AsyncStorage.setItem(
 					'userInfo',
 					JSON.stringify({ ...values, selectedNotifications, dp: image })
@@ -102,12 +103,20 @@ export const ProfileScreen = ({ navigation }) => {
 		}
 	}
 
+	const handleRemoveDP = async () => {
+		setImage(null)
+		await AsyncStorage.mergeItem('userInfo', JSON.stringify({ dp: null }))
+	}
+
 	const getDefaultValues = async () => {
 		try {
-			const values = await AsyncStorage.getItem('userInfo')
+			const res = await AsyncStorage.getItem('userInfo')
+			const values = JSON.parse(res)
+
 			setDefaultValues((prev) => {
-				return { ...prev, ...JSON.parse(values) }
+				return { ...prev, ...values }
 			})
+			setImage(values?.dp || null)
 		} catch (error) {
 			console.log(error)
 		}
@@ -130,11 +139,7 @@ export const ProfileScreen = ({ navigation }) => {
 				<Text style={styles.sectionTitle}>Personal Information</Text>
 
 				<View style={styles.dpSection}>
-					<Avatar
-						name={name || ''}
-						uri={userInfo?.dp || image || ''}
-						style={{ width: 50, height: 50 }}
-					/>
+					<Avatar name={name || ''} uri={image || ''} style={styles.avatar} />
 
 					<Button
 						variant="dark"
@@ -145,7 +150,7 @@ export const ProfileScreen = ({ navigation }) => {
 
 					<Button
 						variant="transparent"
-						handlePress={() => setImage(null)}
+						handlePress={handleRemoveDP}
 						renderStyles={styles.button}>
 						Remove
 					</Button>
@@ -253,12 +258,17 @@ const styles = StyleSheet.create({
 		gap: 24,
 		marginVertical: 16,
 	},
+	avatar: {
+		width: 70,
+		height: 70,
+		borderRadius: 70,
+	},
 	notificationTitle: {
 		marginVertical: 16,
 	},
 	button: {
 		paddingVertical: 0,
-		paddingHorizontal: 10,
+		paddingHorizontal: 16,
 	},
 	formButtonRow: {
 		flexDirection: 'row',
