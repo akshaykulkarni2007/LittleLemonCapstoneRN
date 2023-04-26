@@ -22,8 +22,13 @@ export const ProfileScreen = ({ navigation }) => {
 
 	const [submitting, setSubmitting] = useState(false)
 	const [selectedNotifications, setSelectedNotifications] = useState([])
-	const [defaultValues, setDefaultValues] = useState({ name: '', email: '' })
-	const [image, setImage] = useState(null)
+	const [defaultValues, setDefaultValues] = useState({
+		fname: '',
+		email: '',
+		lname: '',
+		phone: '',
+	})
+	const [image, setImage] = useState(userInfo?.imageURL || null)
 
 	useEffect(() => {
 		getDefaultValues()
@@ -43,10 +48,10 @@ export const ProfileScreen = ({ navigation }) => {
 	} = useFormik({
 		enableReinitialize: true,
 		initialValues: {
-			fname: defaultValues.name,
-			lname: '',
+			fname: defaultValues.fname,
+			lname: defaultValues.lname,
 			email: defaultValues.email,
-			phone: '',
+			phone: defaultValues.phone,
 		},
 		validationSchema: profileSchema,
 
@@ -54,11 +59,13 @@ export const ProfileScreen = ({ navigation }) => {
 			setSubmitting(true)
 
 			try {
-				console.log(values)
-				console.log(selectedNotifications)
-				// ["orders", "password"] //selectedNotifications
-				// {"email": "Akshaykulkarni2007@gmail.com", "fname": "akshay ", "lname": "Kulkarni ", "phone": "1234567890"}
-				// dp: image
+				console.log({ ...values, selectedNotifications, dp: image })
+				await AsyncStorage.setItem(
+					'userInfo',
+					JSON.stringify({ ...values, selectedNotifications, dp: image })
+				)
+
+				navigation.navigate('Home')
 			} catch (error) {
 				console.log(error)
 			} finally {
@@ -66,6 +73,8 @@ export const ProfileScreen = ({ navigation }) => {
 			}
 		},
 	})
+
+	const name = `${userInfo?.fname} ${userInfo?.lname || ''}`
 
 	const notificationList = [
 		{ id: 1, label: 'Order statuses', value: 'orders', isChecked: false },
@@ -122,8 +131,8 @@ export const ProfileScreen = ({ navigation }) => {
 
 				<View style={styles.dpSection}>
 					<Avatar
-						name={userInfo?.name || ''}
-						uri={userInfo?.imageURL || image || ''}
+						name={name || ''}
+						uri={userInfo?.dp || image || ''}
 						style={{ width: 50, height: 50 }}
 					/>
 

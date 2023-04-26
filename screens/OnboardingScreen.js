@@ -33,7 +33,7 @@ export const OnboardingScreen = ({ navigation }) => {
 			try {
 				await AsyncStorage.setItem(
 					'userInfo',
-					JSON.stringify({ name: values.fname, email: values.email })
+					JSON.stringify({ fname: values.fname, email: values.email })
 				)
 
 				navigation.navigate('Home')

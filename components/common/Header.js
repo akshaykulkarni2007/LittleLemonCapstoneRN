@@ -1,12 +1,14 @@
 import { View, SafeAreaView, Image, StyleSheet, Pressable } from 'react-native'
 
 import { Avatar } from './Avatar'
+import { Button } from './Button'
 
 import { useUserInfo } from '../../hooks'
-import { Button } from './Button'
 
 export const Header = ({ navigation, showBackButton }) => {
 	const { userInfo } = useUserInfo()
+
+	const name = `${userInfo?.fname} ${userInfo?.lname || ''}`
 
 	return (
 		<SafeAreaView style={styles.container}>
@@ -30,7 +32,7 @@ export const Header = ({ navigation, showBackButton }) => {
 				<Pressable
 					onPress={() => navigation.navigate('Profile')}
 					style={styles.dp}>
-					<Avatar name={userInfo?.name || ''} uri={userInfo?.imageURL || ''} />
+					<Avatar name={name || ''} uri={userInfo?.dp || ''} />
 				</Pressable>
 			</View>
 		</SafeAreaView>
