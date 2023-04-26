@@ -1,12 +1,11 @@
 import { useState } from 'react'
-import { SafeAreaView, Text, Image, StyleSheet } from 'react-native'
+import { SafeAreaView, View, Text, Image, StyleSheet } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useFormik } from 'formik'
 
 import { Input, Button } from '../components'
 
 import { onboardingSchema } from '../utils'
-import { View } from 'react-native'
 
 export const OnboardingScreen = ({ navigation }) => {
 	const [submitting, setSubmitting] = useState(false)

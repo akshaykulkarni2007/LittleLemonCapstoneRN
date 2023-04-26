@@ -3,6 +3,7 @@ import { Text, Pressable, StyleSheet } from 'react-native'
 export const Button = ({
 	variant = 'primary',
 	disabled,
+	size,
 	handlePress,
 	renderStyles,
 	children,
@@ -11,6 +12,7 @@ export const Button = ({
 		style={[
 			styles.button,
 			styles[variant],
+			styles[size],
 			renderStyles,
 			disabled && styles.disabled,
 		]}
@@ -51,6 +53,12 @@ const styles = StyleSheet.create({
 	},
 	transparentLabel: {
 		color: '#495e57',
+	},
+	small: {
+		paddingTop: 0,
+		paddingBottom: 10,
+		paddingHorizontal: 5,
+		borderRadius: 20,
 	},
 	disabled: {
 		opacity: 0.4,

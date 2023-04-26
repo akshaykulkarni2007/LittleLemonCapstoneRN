@@ -2,9 +2,9 @@ import { View, Text, Image, StyleSheet } from 'react-native'
 
 import React from 'react'
 
-export const Avatar = ({ uri, name }) => {
+export const Avatar = ({ uri, name, style }) => {
 	return (
-		<View style={styles.container}>
+		<View style={[styles.container, style]}>
 			{uri ? (
 				<Image source={{ uri }} style={styles.image} />
 			) : (
@@ -40,5 +40,6 @@ const styles = StyleSheet.create({
 		color: '#fff',
 		fontSize: 16,
 		fontFamily: 'Karla',
+		textTransform: 'uppercase',
 	},
 })

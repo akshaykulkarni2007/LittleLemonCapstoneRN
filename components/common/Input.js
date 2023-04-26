@@ -30,8 +30,7 @@ export const Input = ({
 const styles = StyleSheet.create({
 	container: {
 		width: '100%',
-		paddingTop: 16,
-		marginTop: 10,
+		marginTop: 16,
 	},
 	label: {
 		fontFamily: 'Karla',
@@ -49,6 +48,6 @@ const styles = StyleSheet.create({
 	error: {
 		color: 'red',
 		fontSize: 14,
-		marginTop: 10,
+		marginTop: 8,
 	},
 })

@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react'
-import { View, Text, FlatList, StyleSheet, ScrollView } from 'react-native'
+import {
+	View,
+	Text,
+	FlatList,
+	StyleSheet,
+	ScrollView,
+	LogBox,
+} from 'react-native'
 import Constants from 'expo-constants'
 import * as SQLite from 'expo-sqlite'
 
@@ -7,7 +14,7 @@ import { Header, HeroBanner, MenuFilter, MenuItem } from '../components'
 
 const db = SQLite.openDatabase('little_lemon')
 
-export const HomeScreen = () => {
+export const HomeScreen = ({ navigation }) => {
 	const [menu, setMenu] = useState([])
 	const [filters, setFilters] = useState([])
 	const [searchText, setSearchText] = useState('')
@@ -20,6 +27,7 @@ export const HomeScreen = () => {
 		})
 
 		fetchMenu()
+		LogBox.ignoreLogs(['VirtualizedLists should never be nested'])
 	}, [])
 
 	useEffect(() => {
@@ -101,8 +109,8 @@ export const HomeScreen = () => {
 	}
 
 	return (
-		<View style={styles.container}>
-			<Header />
+		<ScrollView style={styles.container}>
+			<Header navigation={navigation} />
 
 			<HeroBanner searchText={searchText} setSearchText={setSearchText} />
 
@@ -117,7 +125,7 @@ export const HomeScreen = () => {
 				keyExtractor={(item) => item.name}
 				renderItem={({ item }) => <MenuItem item={item} />}
 			/>
-		</View>
+		</ScrollView>
 	)
 }
 
