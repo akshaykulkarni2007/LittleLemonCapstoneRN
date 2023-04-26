@@ -6,7 +6,9 @@ export const Avatar = ({ uri, name, style }) => {
 	return (
 		<View style={[styles.container, style]}>
 			{uri ? (
-				<Image source={{ uri }} style={styles.image} />
+				<View style={styles.imageContainer}>
+					<Image source={{ uri }} style={styles.image} />
+				</View>
 			) : (
 				<Text style={styles.initials}>
 					{name
@@ -30,11 +32,16 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderRadius: 30,
 	},
-	image: {
+	imageContainer: {
 		width: '100%',
 		height: '100%',
 		overflow: 'hidden',
+	},
+	image: {
+		width: '100%',
+		height: '100%',
 		resizeMode: 'contain',
+		borderRadius: 30,
 	},
 	initials: {
 		color: '#fff',

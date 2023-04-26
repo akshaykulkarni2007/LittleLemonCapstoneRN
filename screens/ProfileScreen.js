@@ -7,7 +7,7 @@ import {
 	ScrollView,
 	LogBox,
 } from 'react-native'
-
+import * as ImagePicker from 'expo-image-picker'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useFormik } from 'formik'
 
@@ -23,6 +23,7 @@ export const ProfileScreen = ({ navigation }) => {
 	const [submitting, setSubmitting] = useState(false)
 	const [selectedNotifications, setSelectedNotifications] = useState([])
 	const [defaultValues, setDefaultValues] = useState({ name: '', email: '' })
+	const [image, setImage] = useState(null)
 
 	useEffect(() => {
 		getDefaultValues()
@@ -57,6 +58,7 @@ export const ProfileScreen = ({ navigation }) => {
 				console.log(selectedNotifications)
 				// ["orders", "password"] //selectedNotifications
 				// {"email": "Akshaykulkarni2007@gmail.com", "fname": "akshay ", "lname": "Kulkarni ", "phone": "1234567890"}
+				// dp: image
 			} catch (error) {
 				console.log(error)
 			} finally {
@@ -76,6 +78,19 @@ export const ProfileScreen = ({ navigation }) => {
 		setSelectedNotifications((prev) =>
 			prev.includes(val) ? prev.filter((p) => p !== val) : [...prev, val]
 		)
+	}
+
+	const pickImage = async () => {
+		let result = await ImagePicker.launchImageLibraryAsync({
+			mediaTypes: ImagePicker.MediaTypeOptions.All,
+			allowsEditing: true,
+			aspect: [4, 3],
+			quality: 1,
+		})
+
+		if (!result.canceled) {
+			setImage(result.assets[0].uri)
+		}
 	}
 
 	const getDefaultValues = async () => {
@@ -108,20 +123,20 @@ export const ProfileScreen = ({ navigation }) => {
 				<View style={styles.dpSection}>
 					<Avatar
 						name={userInfo?.name || ''}
-						uri={userInfo?.imageURL || ''}
+						uri={userInfo?.imageURL || image || ''}
 						style={{ width: 50, height: 50 }}
 					/>
 
 					<Button
 						variant="dark"
-						handlePress={() => {}}
+						handlePress={pickImage}
 						renderStyles={styles.button}>
 						Change
 					</Button>
 
 					<Button
 						variant="transparent"
-						handlePress={() => {}}
+						handlePress={() => setImage(null)}
 						renderStyles={styles.button}>
 						Remove
 					</Button>
