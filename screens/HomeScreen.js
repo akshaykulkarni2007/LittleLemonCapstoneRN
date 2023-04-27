@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
 	View,
 	Text,
@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import Constants from 'expo-constants'
 import * as SQLite from 'expo-sqlite'
+import debounce from 'lodash.debounce'
 
 import { Header, HeroBanner, MenuFilter, MenuItem } from '../components'
 
@@ -108,11 +109,23 @@ export const HomeScreen = ({ navigation }) => {
 			: setFilters((prev) => [...prev, text])
 	}
 
+	const handleDebounceSearch = async (inputValue) => {
+		console.log(inputValue)
+	}
+
+	const debounceSearch = useCallback(debounce(handleDebounceSearch, 500), [])
+
 	return (
 		<ScrollView style={styles.container}>
 			<Header navigation={navigation} />
 
-			<HeroBanner searchText={searchText} setSearchText={setSearchText} />
+			<HeroBanner
+				searchText={searchText}
+				setSearchText={(val) => {
+					setSearchText(val)
+					debounceSearch(val)
+				}}
+			/>
 
 			<MenuFilter
 				categories={categories}
