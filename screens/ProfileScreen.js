@@ -30,13 +30,16 @@ export const ProfileScreen = ({ navigation }) => {
 		dp: '',
 	})
 	const [image, setImage] = useState(defaultValues?.dp || null)
-	console.log(image)
 
 	useEffect(() => {
 		getDefaultValues()
 
 		LogBox.ignoreLogs(['VirtualizedLists should never be nested'])
 	}, [])
+
+	useEffect(() => {
+		updateDPStorage()
+	}, [image])
 
 	const {
 		values,
@@ -105,8 +108,10 @@ export const ProfileScreen = ({ navigation }) => {
 
 	const handleRemoveDP = async () => {
 		setImage(null)
-		await AsyncStorage.mergeItem('userInfo', JSON.stringify({ dp: null }))
 	}
+
+	const updateDPStorage = async () =>
+		await AsyncStorage.mergeItem('userInfo', JSON.stringify({ dp: image }))
 
 	const getDefaultValues = async () => {
 		try {
@@ -117,6 +122,7 @@ export const ProfileScreen = ({ navigation }) => {
 				return { ...prev, ...values }
 			})
 			setImage(values?.dp || null)
+			setSelectedNotifications([...values.selectedNotifications])
 		} catch (error) {
 			console.log(error)
 		}
@@ -201,16 +207,16 @@ export const ProfileScreen = ({ navigation }) => {
 
 					<FlatList
 						data={notificationList}
-						renderItem={({ item }) => (
-							<Checkbox
-								label={item.label}
-								value={item.value}
-								isSelected={
-									defaultValues?.selectedNotifications?.includes[item.value]
-								}
-								handleChange={handleNotificationSelection}
-							/>
-						)}
+						renderItem={({ item }) => {
+							return (
+								<Checkbox
+									label={item.label}
+									value={item.value}
+									isSelected={selectedNotifications.includes(item.value)}
+									handleChange={handleNotificationSelection}
+								/>
+							)
+						}}
 						scrollEnabled={false}
 					/>
 
@@ -218,10 +224,10 @@ export const ProfileScreen = ({ navigation }) => {
 						<Button
 							variant="dark"
 							handlePress={handleSubmit}
-							disabled={submitting || !(isValid && dirty)}>
+							disabled={submitting || !isValid}>
 							Save changes
 						</Button>
-
+						{/* submitting || !(isValid && dirty) */}
 						<Button
 							variant="transparent"
 							handlePress={() => {
