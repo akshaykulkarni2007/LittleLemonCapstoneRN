@@ -17,6 +17,8 @@ const db = SQLite.openDatabase('little_lemon')
 
 export const HomeScreen = ({ navigation }) => {
 	const [menu, setMenu] = useState([])
+	const [filteredMenu, setFilteredMenu] = useState([])
+	const [categories, setCategories] = useState([])
 	const [filters, setFilters] = useState([])
 	const [searchText, setSearchText] = useState('')
 
@@ -27,15 +29,35 @@ export const HomeScreen = ({ navigation }) => {
 			)
 		})
 
+		db.transaction(async (tx) => {
+			tx.executeSql(
+				`SELECT category FROM menu`,
+				null,
+				async (txObj, { rows: { _array } }) => {
+					const categories = _array
+					setCategories([...new Set(categories.map((item) => item.category))])
+				},
+				(txObj, error) => console.log('Error ', error)
+			)
+		})
+
 		fetchMenu()
 		LogBox.ignoreLogs(['VirtualizedLists should never be nested'])
 	}, [])
 
 	useEffect(() => {
-		filterMenu()
-	}, [filters, searchText])
+		if (menu.length) {
+			setFilteredMenu(menu)
+		}
+	}, [menu])
 
-	const categories = [...new Set(menu.map((item) => item.category))]
+	useEffect(() => {
+		if (filters.length || searchText.length) {
+			filterMenu()
+		} else {
+			setFilteredMenu(menu)
+		}
+	}, [filters, searchText])
 
 	const fetchMenu = async () => {
 		db.transaction(async (tx) => {
@@ -48,6 +70,7 @@ export const HomeScreen = ({ navigation }) => {
 					if (dbMenu.length === 0) {
 						const APIMenu = await fetchMenuFromAPI()
 						setMenu(APIMenu)
+						// setFilteredMenu(APIMenu)
 
 						const recordCount = APIMenu.length
 						const recordLength = Object.keys(APIMenu[0]).length
@@ -71,6 +94,7 @@ export const HomeScreen = ({ navigation }) => {
 						})
 					} else {
 						setMenu(dbMenu)
+						// setFilteredMenu(dbMenu)
 					}
 				},
 				(txObj, error) => console.log('Error ', error)
@@ -86,16 +110,20 @@ export const HomeScreen = ({ navigation }) => {
 		return data.menu
 	}
 
+	const emptyListComponent = (
+		<Text style={styles.noItemsText}>No results found!</Text>
+	)
+
 	const filterMenu = async () => {
 		const transformedFilters = filters.map((a) => "'" + a + "'").join(',')
-		console.log('filtering', transformedFilters)
+
 		db.transaction(async (tx) => {
 			tx.executeSql(
 				`SELECT * FROM menu WHERE category IN (${transformedFilters}) AND name LIKE '%${searchText}%'`,
 				null,
 				async (txObj, { rows: { _array } }) => {
 					const filteredMenu = _array
-					console.log(filteredMenu)
+					setFilteredMenu(filteredMenu)
 				},
 				(txObj, error) => console.log('Error ', error)
 			)
@@ -133,9 +161,11 @@ export const HomeScreen = ({ navigation }) => {
 			/>
 
 			<FlatList
-				data={menu}
+				data={filteredMenu}
+				extraData={menu}
 				keyExtractor={(item) => item.name}
 				renderItem={({ item }) => <MenuItem item={item} />}
+				ListEmptyComponent={emptyListComponent}
 			/>
 		</View>
 	)
@@ -144,5 +174,8 @@ export const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
+	},
+	noItemsText: {
+		marginLeft: '5%',
 	},
 })
