@@ -33,10 +33,9 @@ export const HomeScreen = ({ navigation }) => {
 
 	useEffect(() => {
 		filterMenu()
-	}, [filters])
+	}, [filters, searchText])
 
 	const categories = [...new Set(menu.map((item) => item.category))]
-	console.log(categories)
 
 	const fetchMenu = async () => {
 		db.transaction(async (tx) => {
@@ -88,11 +87,11 @@ export const HomeScreen = ({ navigation }) => {
 	}
 
 	const filterMenu = async () => {
-		console.log('filtering')
+		const transformedFilters = filters.map((a) => "'" + a + "'").join(',')
+		console.log('filtering', transformedFilters)
 		db.transaction(async (tx) => {
 			tx.executeSql(
-				// `SELECT * FROM menu WHERE ${categories[0]} IN (category)`,
-				`SELECT * FROM menu WHERE category IN (${filters[0]})`,
+				`SELECT * FROM menu WHERE category IN (${transformedFilters}) AND name LIKE '%${searchText}%'`,
 				null,
 				async (txObj, { rows: { _array } }) => {
 					const filteredMenu = _array
@@ -116,7 +115,7 @@ export const HomeScreen = ({ navigation }) => {
 	const debounceSearch = useCallback(debounce(handleDebounceSearch, 500), [])
 
 	return (
-		<ScrollView style={styles.container}>
+		<View style={styles.container}>
 			<Header navigation={navigation} />
 
 			<HeroBanner
@@ -138,7 +137,7 @@ export const HomeScreen = ({ navigation }) => {
 				keyExtractor={(item) => item.name}
 				renderItem={({ item }) => <MenuItem item={item} />}
 			/>
-		</ScrollView>
+		</View>
 	)
 }
 
