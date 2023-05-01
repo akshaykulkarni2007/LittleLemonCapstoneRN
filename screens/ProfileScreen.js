@@ -227,7 +227,7 @@ export const ProfileScreen = ({ navigation }) => {
 							disabled={submitting || !isValid}>
 							Save changes
 						</Button>
-						{/* submitting || !(isValid && dirty) */}
+
 						<Button
 							variant="transparent"
 							handlePress={() => {

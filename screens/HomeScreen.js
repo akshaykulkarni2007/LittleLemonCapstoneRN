@@ -1,13 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import {
-	View,
-	Text,
-	FlatList,
-	StyleSheet,
-	ScrollView,
-	LogBox,
-} from 'react-native'
-import Constants from 'expo-constants'
+import { View, Text, FlatList, StyleSheet, LogBox } from 'react-native'
 import * as SQLite from 'expo-sqlite'
 import debounce from 'lodash.debounce'
 
@@ -42,7 +34,6 @@ export const HomeScreen = ({ navigation }) => {
 		})
 
 		fetchMenu()
-		LogBox.ignoreLogs(['VirtualizedLists should never be nested'])
 	}, [])
 
 	useEffect(() => {
@@ -70,7 +61,6 @@ export const HomeScreen = ({ navigation }) => {
 					if (dbMenu.length === 0) {
 						const APIMenu = await fetchMenuFromAPI()
 						setMenu(APIMenu)
-						// setFilteredMenu(APIMenu)
 
 						const recordCount = APIMenu.length
 						const recordLength = Object.keys(APIMenu[0]).length
@@ -94,7 +84,6 @@ export const HomeScreen = ({ navigation }) => {
 						})
 					} else {
 						setMenu(dbMenu)
-						// setFilteredMenu(dbMenu)
 					}
 				},
 				(txObj, error) => console.log('Error ', error)
