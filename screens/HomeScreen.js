@@ -62,22 +62,13 @@ export const HomeScreen = ({ navigation }) => {
 						const APIMenu = await fetchMenuFromAPI()
 						setMenu(APIMenu)
 
-						const recordCount = APIMenu.length
-						const recordLength = Object.keys(APIMenu[0]).length
-
-						const qms = '(' + '?,'.repeat(recordLength) + ')'
-						const values = qms.repeat(recordCount)
-						const placeholder = values.replace(/(,\))/gim, '), ')
-						const finalPLaceholder = placeholder.trim().slice(0, -1)
-
 						db.transaction((tx) => {
 							tx.executeSql(
-								'INSERT INTO menu (name, price, description, image, category) values ' +
-									finalPLaceholder,
-								[].concat.apply(
-									[],
-									APIMenu.map((x) => Object.values(x))
-								),
+								`INSERT INTO menu (name, price, description, image, category) values ${APIMenu.map(
+									(item) =>
+										`("${item.name}", "${item.price}", "${item.description}", "${item.image}", "${item.category}")`
+								).join(', ')}`,
+								[],
 								(txObj, resultSet) => console.log('inserted', resultSet),
 								(txObj, error) => console.log('Error', error)
 							)
@@ -104,13 +95,18 @@ export const HomeScreen = ({ navigation }) => {
 	)
 
 	const filterMenu = async () => {
-		const transformedFilters = filters.map((a) => "'" + a + "'").join(',')
+		console.log('calling')
+		const selectedFilters = filters.length
+			? filters.map((filter) => `category='${filter}'`)
+			: categories.map((filter) => `category='${filter}'`)
 
 		db.transaction(async (tx) => {
 			tx.executeSql(
-				`SELECT * FROM menu WHERE category IN (${transformedFilters}) AND name LIKE '%${searchText}%'`,
-				null,
-				async (txObj, { rows: { _array } }) => {
+				`SELECT * FROM menu WHERE (name like '%${searchText}%') AND (${selectedFilters.join(
+					' OR '
+				)})`,
+				[],
+				(_, { rows: { _array } }) => {
 					const filteredMenu = _array
 					setFilteredMenu(filteredMenu)
 				},
