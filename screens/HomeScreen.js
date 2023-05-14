@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
-import { View, Text, FlatList, StyleSheet, LogBox } from 'react-native'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { View, Text, FlatList, StyleSheet } from 'react-native'
 import * as SQLite from 'expo-sqlite'
 import debounce from 'lodash.debounce'
 
@@ -13,6 +13,7 @@ export const HomeScreen = ({ navigation }) => {
 	const [categories, setCategories] = useState([])
 	const [filters, setFilters] = useState([])
 	const [searchText, setSearchText] = useState('')
+	const [query, setQuery] = useState('')
 
 	useEffect(() => {
 		db.transaction((tx) => {
@@ -43,12 +44,12 @@ export const HomeScreen = ({ navigation }) => {
 	}, [menu])
 
 	useEffect(() => {
-		if (filters.length || searchText.length) {
+		if (filters.length || query.length) {
 			filterMenu()
 		} else {
 			setFilteredMenu(menu)
 		}
-	}, [filters, searchText])
+	}, [filters, query])
 
 	const fetchMenu = async () => {
 		db.transaction(async (tx) => {
@@ -95,14 +96,13 @@ export const HomeScreen = ({ navigation }) => {
 	)
 
 	const filterMenu = async () => {
-		console.log('calling')
 		const selectedFilters = filters.length
 			? filters.map((filter) => `category='${filter}'`)
 			: categories.map((filter) => `category='${filter}'`)
 
 		db.transaction(async (tx) => {
 			tx.executeSql(
-				`SELECT * FROM menu WHERE (name like '%${searchText}%') AND (${selectedFilters.join(
+				`SELECT * FROM menu WHERE (name like '%${query}%') AND (${selectedFilters.join(
 					' OR '
 				)})`,
 				[],
@@ -121,23 +121,22 @@ export const HomeScreen = ({ navigation }) => {
 			: setFilters((prev) => [...prev, text])
 	}
 
-	const handleDebounceSearch = async (inputValue) => {
-		console.log(inputValue)
-	}
+	const lookup = useCallback((q) => {
+		setQuery(q)
+	}, [])
 
-	const debounceSearch = useCallback(debounce(handleDebounceSearch, 500), [])
+	const debouncedLookup = useMemo(() => debounce(lookup, 500), [lookup])
+
+	const handleSearchChange = (text) => {
+		setSearchText(text)
+		debouncedLookup(text)
+	}
 
 	return (
 		<View style={styles.container}>
 			<Header navigation={navigation} />
 
-			<HeroBanner
-				searchText={searchText}
-				setSearchText={(val) => {
-					setSearchText(val)
-					debounceSearch(val)
-				}}
-			/>
+			<HeroBanner searchText={searchText} setSearchText={handleSearchChange} />
 
 			<MenuFilter
 				categories={categories}
