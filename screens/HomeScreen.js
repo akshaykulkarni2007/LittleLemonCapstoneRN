@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { View, Text, FlatList, StyleSheet } from 'react-native'
-import * as SQLite from 'expo-sqlite'
 import debounce from 'lodash.debounce'
 
 import { Header, HeroBanner, MenuFilter, MenuItem } from '../components'
 
-const db = SQLite.openDatabase('little_lemon')
+import { createTable, getAllCategories, filterMenu, fetchMenu } from '../utils'
 
 export const HomeScreen = ({ navigation }) => {
 	const [menu, setMenu] = useState([])
@@ -16,25 +15,16 @@ export const HomeScreen = ({ navigation }) => {
 	const [query, setQuery] = useState('')
 
 	useEffect(() => {
-		db.transaction((tx) => {
-			tx.executeSql(
-				'CREATE TABLE IF NOT EXISTS menu (name TEXT, description TEXT, price TEXT, image TEXT, category TEXT)'
-			)
-		})
+		const initApp = async () => {
+			await createTable()
+			const fetchedMenu = await fetchMenu()
+			setMenu(fetchedMenu)
 
-		db.transaction(async (tx) => {
-			tx.executeSql(
-				`SELECT category FROM menu`,
-				null,
-				async (txObj, { rows: { _array } }) => {
-					const categories = _array
-					setCategories([...new Set(categories.map((item) => item.category))])
-				},
-				(txObj, error) => console.log('Error ', error)
-			)
-		})
+			const allCategories = await getAllCategories()
+			setCategories(allCategories)
+		}
 
-		fetchMenu()
+		initApp()
 	}, [])
 
 	useEffect(() => {
@@ -44,76 +34,25 @@ export const HomeScreen = ({ navigation }) => {
 	}, [menu])
 
 	useEffect(() => {
-		if (filters.length || query.length) {
-			filterMenu()
-		} else {
-			setFilteredMenu(menu)
+		const filteredMenu = async () => {
+			if (filters.length || query.length) {
+				const selectedFilters = filters.length
+					? filters.map((filter) => `category='${filter}'`)
+					: categories.map((filter) => `category='${filter}'`)
+
+				const filteredMenuResults = await filterMenu(query, selectedFilters)
+				setFilteredMenu(filteredMenuResults)
+			} else {
+				setFilteredMenu(menu)
+			}
 		}
+
+		filteredMenu()
 	}, [filters, query])
-
-	const fetchMenu = async () => {
-		db.transaction(async (tx) => {
-			tx.executeSql(
-				`SELECT * FROM menu`,
-				null,
-				async (txObj, { rows: { _array } }) => {
-					const dbMenu = _array
-
-					if (dbMenu.length === 0) {
-						const APIMenu = await fetchMenuFromAPI()
-						setMenu(APIMenu)
-
-						db.transaction((tx) => {
-							tx.executeSql(
-								`INSERT INTO menu (name, price, description, image, category) values ${APIMenu.map(
-									(item) =>
-										`("${item.name}", "${item.price}", "${item.description}", "${item.image}", "${item.category}")`
-								).join(', ')}`,
-								[],
-								(txObj, resultSet) => console.log('inserted', resultSet),
-								(txObj, error) => console.log('Error', error)
-							)
-						})
-					} else {
-						setMenu(dbMenu)
-					}
-				},
-				(txObj, error) => console.log('Error ', error)
-			)
-		})
-	}
-
-	const fetchMenuFromAPI = async () => {
-		const res = await fetch(
-			'https://raw.githubusercontent.com/Meta-Mobile-Developer-PC/Working-With-Data-API/main/capstone.json'
-		)
-		const data = await res.json()
-		return data.menu
-	}
 
 	const emptyListComponent = (
 		<Text style={styles.noItemsText}>No results found!</Text>
 	)
-
-	const filterMenu = async () => {
-		const selectedFilters = filters.length
-			? filters.map((filter) => `category='${filter}'`)
-			: categories.map((filter) => `category='${filter}'`)
-
-		db.transaction(async (tx) => {
-			tx.executeSql(
-				`SELECT * FROM menu WHERE (name like '%${query}%') AND (${selectedFilters.join(
-					' OR '
-				)})`,
-				[],
-				(_, { rows: { _array } }) => {
-					const filteredMenu = _array
-					setFilteredMenu(filteredMenu)
-				},
-				(txObj, error) => console.log('Error ', error)
-			)
-		})
-	}
 
 	const handleChangeFilter = (text) => {
 		filters.includes(text)
