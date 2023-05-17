@@ -11,7 +11,13 @@ import * as ImagePicker from 'expo-image-picker'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useFormik } from 'formik'
 
-import { Header, Avatar, Input, Button, Checkbox } from '../components'
+import {
+	Header,
+	Avatar,
+	Button,
+	Checkbox,
+	ProfileFormInputs,
+} from '../components'
 
 import { useUserInfo } from '../hooks'
 
@@ -163,44 +169,14 @@ export const ProfileScreen = ({ navigation }) => {
 				</View>
 
 				<View>
-					<Input
-						label="First Name"
-						name="fname"
-						touched={touched.fname}
-						errors={errors.fname}
-						value={values.fname}
+					<ProfileFormInputs
+						touched={touched}
+						errors={errors}
+						values={values}
 						handleChange={handleChange}
 						handleBlur={handleBlur}
 					/>
-					<Input
-						label="Last Name"
-						name="lname"
-						touched={touched.lname}
-						errors={errors.lname}
-						value={values.lname}
-						handleChange={handleChange}
-						handleBlur={handleBlur}
-					/>
-					<Input
-						label="Email"
-						name="email"
-						touched={touched.email}
-						errors={errors.email}
-						value={values.email}
-						keyboardType="email-address"
-						handleChange={handleChange}
-						handleBlur={handleBlur}
-					/>
-					<Input
-						label="Phone number"
-						name="phone"
-						touched={touched.phone}
-						errors={errors.phone}
-						value={values.phone}
-						keyboardType="phone-pad"
-						handleChange={handleChange}
-						handleBlur={handleBlur}
-					/>
+
 					<Text style={[styles.sectionTitle, styles.notificationTitle]}>
 						Email notifications
 					</Text>
